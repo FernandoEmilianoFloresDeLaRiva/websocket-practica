@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preguntas</title>
+  </head>
+  <body>
+    <h1 id="pregunta"></h1>
+    <div id="contenedor-respuestas"></div>
+  </body>
+  <script>
+    //se inicializa server
+    let socket = new WebSocket("ws://localhost:3000");
+    let preguntas = {};
+    let verificacion = "";
+    //se consigue pregunta html
+    const pregunta = document.getElementById("pregunta");
+    //se consigue contenedor html
+    let contenedorRespuestas = document.getElementById("contenedor-respuestas");
+    //recibe datos y lo guarda en mi variable
+    const inicializarSocket = () => {
+      socket.onmessage = (e) => {
+        console.log("Mensaje recibido:", e.data);
+        preguntas = JSON.parse(e.data);
+        console.log(preguntas);
+        generarRadioButtons(preguntas);
+      };
+    };
+    //se generan radio buttons
+    const generarRadioButtons = (arrRespuestas) => {
+      pregunta.innerText = preguntas.pregunta;
+      contenedorRespuestas.innerHTML = "";
+      const { opciones } = arrRespuestas;
+      opciones.forEach((respuesta) => {
+        const input = document.createElement("input");
+        const label = document.createElement("label");
+        label.htmlFor = respuesta;
+        input.type = "radio";
+        input.id = respuesta;
+        label.innerText = respuesta;
+        input.value = respuesta;
+        input.addEventListener("change", (e) => {
+          verificacion =
+            e.target.value === preguntas.respuesta_correcta ? "true" : "false";
+          socket.send(verificacion);
+          console.log(verificacion);
+        });
+        contenedorRespuestas.appendChild(label);
+        contenedorRespuestas.appendChild(input);
+      });
+    };
+    inicializarSocket();
+  </script>
+</html>
